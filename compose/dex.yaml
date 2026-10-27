@@ -1,0 +1,23 @@
+# Dex for the quick-start: one demo user, demo@example.com with the password "password".
+# For trying sign-in only; never use it for a real installation.
+issuer: http://localhost:5556/dex
+
+storage:
+  type: memory
+
+web:
+  http: 0.0.0.0:5556
+
+staticClients:
+  - id: kiln
+    name: Kiln
+    secret: kiln-quick-start-secret
+    redirectURIs:
+      - http://localhost:8080/auth/dex/callback
+
+enablePasswordDB: true
+staticPasswords:
+  - email: demo@example.com
+    hash: "$2b$10$3SXB//3aJCojlnCedGlhYOxHPsPtL/AmoSHzjKLmYOnudiTBDAyGG"
+    username: demo
+    userID: 08a8684b-db88-4b73-90a9-3cd1661f5466

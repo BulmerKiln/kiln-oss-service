@@ -1,0 +1,51 @@
+# The quick-start: Kiln, its Postgres, and Dex with a demo user for trying sign-in.
+#   ./gradlew bootJar && cd compose && cp .env.example .env && docker compose up --build
+name: kiln
+
+services:
+  postgres:
+    image: postgres:17.11-alpine3.23
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?copy .env.example to .env}
+      KILN_MIGRATOR_PASSWORD: ${KILN_MIGRATOR_PASSWORD:?copy .env.example to .env}
+      KILN_APP_PASSWORD: ${KILN_APP_PASSWORD:?copy .env.example to .env}
+      KILN_OPS_PASSWORD: ${KILN_OPS_PASSWORD:?copy .env.example to .env}
+    volumes:
+      - ./postgres-init.sh:/docker-entrypoint-initdb.d/10-kiln-roles.sh:ro
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 2s
+      retries: 30
+
+  dex:
+    image: ghcr.io/dexidp/dex:v2.46.0
+    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    volumes:
+      - ./dex.yaml:/etc/dex/config.yaml:ro
+    ports:
+      - "127.0.0.1:5556:5556"
+
+  kiln:
+    build: ..
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      KILN_DATABASE_PASSWORD: ${KILN_APP_PASSWORD}
+      KILN_DATABASE_MIGRATOR_PASSWORD: ${KILN_MIGRATOR_PASSWORD}
+    volumes:
+      - ./kiln.yaml:/etc/kiln/kiln.yaml:ro
+      - blobs:/var/lib/kiln/blobs
+    ports:
+      - "127.0.0.1:8080:8080"
+      # Health and metrics, for trying them out; never publish this port beyond the host.
+      - "127.0.0.1:9090:9090"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/readyz"]
+      interval: 5s
+      retries: 30
+
+volumes:
+  postgres:
+  blobs:

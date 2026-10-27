@@ -1,0 +1,26 @@
+.gradle/
+build/
+# A package named "build" is source, not output.
+!**/src/**/build/
+.kotlin/
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+bin/
+out/
+
+# Test tooling state
+.jqwik-database
+.cifuzz-corpus/
+
+# JVM crash logs
+hs_err_pid*.log
+java_pid*.hprof
+
+# Compose secrets; .env.example is the template
+compose/.env

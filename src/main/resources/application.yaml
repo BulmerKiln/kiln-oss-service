@@ -1,0 +1,45 @@
+# Kiln's defaults. Installations configure Kiln in kiln.yaml (KILN_CONFIG names another file), and
+# every setting can be overridden from the environment: kiln.database.url is KILN_DATABASE_URL.
+spring:
+  application:
+    name: kiln
+  config:
+    import: "optional:file:${KILN_CONFIG:/etc/kiln/kiln.yaml}"
+  main:
+    banner-mode: off
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: 8080
+  shutdown: graceful
+
+# Health and metrics are for the infrastructure only, on their own port that no ingress exposes.
+management:
+  server:
+    port: 9090
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: health, prometheus
+      path-mapping:
+        health: healthz
+        prometheus: metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        readiness:
+          additional-path: "management:/readyz"
+
+kiln:
+  web:
+    # Where clients reach Kiln; set it in kiln.yaml to the installation's own URL.
+    external-url: http://localhost:8080
+  storage:
+    type: fs
+    fs:
+      root: /var/lib/kiln/blobs

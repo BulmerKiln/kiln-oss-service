@@ -1,0 +1,16 @@
+# kiln.yaml for the quick-start. Secrets come from the environment (KILN_DATABASE_PASSWORD and
+# KILN_DATABASE_MIGRATOR_PASSWORD), never from this file.
+kiln:
+  # Organizations to create on start; the web app creates more once sign-in exists.
+  bootstrap:
+    organizations: [homelab]
+  web:
+    external-url: http://localhost:8080
+  database:
+    url: jdbc:postgresql://postgres:5432/kiln
+    username: kiln_app
+    migrator-username: kiln_migrator
+  storage:
+    type: fs
+    fs:
+      root: /var/lib/kiln/blobs
