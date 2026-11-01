@@ -49,6 +49,10 @@ once it lands. Its issuer is `http://dex.localhost:5556/dex`: browsers resolve `
 this machine, and inside Compose the name is Dex's network alias, so Kiln's OIDC discovery and the
 browser see the same issuer.
 
+Before its first release, Kiln rewrote its registry migrations once, for the schema every format
+now shares. A quick-start database created before that refuses to start (Flyway reports the
+changed checksums); drop it once with `docker compose down -v`.
+
 ## Configuration
 
 Kiln reads `/etc/kiln/kiln.yaml`, or the file `KILN_CONFIG` names. Every setting can also come from
