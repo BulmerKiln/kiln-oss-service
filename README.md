@@ -1,8 +1,9 @@
 # kiln-oss-service
 
-Bulmer Kiln, the open-source, security-first artifact registry, as one service for one
-organization. It assembles the [`kiln-components`](https://github.com/BulmerKiln/kiln-components)
-modules and adds only what's particular to this edition.
+Bulmer Kiln, the open-source, security-first artifact registry, as one service for any number
+of organizations, each the first segment of its artifact paths. It assembles the
+[`kiln-components`](https://github.com/BulmerKiln/kiln-components) modules, adding only its
+launcher and configuration.
 
 ## At a glance
 
@@ -27,7 +28,7 @@ modules and adds only what's particular to this edition.
 |---|---|---|
 | OSS-1 | The organizations `kiln.bootstrap.organizations` lists must exist after start, each keeping its ID | `KilnOssApplicationTest` |
 | OSS-2 | The service must run as the runtime database role, never the role that owns the schema | `KilnOssApplicationTest` |
-| OSS-3 | `/healthz`, `/readyz` and `/metrics` must be served only on the management port (9090), never on the port clients reach (8080) | `KilnOssApplicationTest` |
+| OSS-3 | Health (`/actuator/health`, with the `/liveness` and `/readiness` groups) and Prometheus metrics (`/actuator/prometheus`) must be served only on the management port (9090), at Spring Boot Actuator's own paths, never on the port clients reach (8080) | `KilnOssApplicationTest` |
 | OSS-4 | Every format's routes must be served for any number of organizations, the organization being the first path segment: `/v2/acme/app` is repository `app` in `acme`. A path naming no organization finds nothing | `KilnOssApplicationTest` |
 | OSS-5 | A format switched off with `kiln.format.<id>.enabled=false` must have no routes at all, while the others keep theirs | `DisabledFormatTest` |
 
@@ -40,11 +41,13 @@ Needs Docker, Java 25, and `kiln-components` checked out next to this repository
 cd compose
 cp .env.example .env    # then change the passwords
 docker compose up --build
-curl http://localhost:9090/readyz
+curl http://localhost:9090/actuator/health/readiness
 ```
 
 Dex runs alongside with a demo user (`demo@example.com`, password `password`) for trying sign-in
-once it lands.
+once it lands. Its issuer is `http://dex.localhost:5556/dex`: browsers resolve `*.localhost` to
+this machine, and inside Compose the name is Dex's network alias, so Kiln's OIDC discovery and the
+browser see the same issuer.
 
 ## Configuration
 

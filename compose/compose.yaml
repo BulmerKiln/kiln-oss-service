@@ -25,6 +25,10 @@ services:
       - ./dex.yaml:/etc/dex/config.yaml:ro
     ports:
       - "127.0.0.1:5556:5556"
+    networks:
+      default:
+        # The issuer's host (see dex.yaml), so Kiln reaches Dex by the name the browser uses.
+        aliases: [dex.localhost]
 
   kiln:
     build: ..
@@ -34,6 +38,7 @@ services:
     environment:
       KILN_DATABASE_PASSWORD: ${KILN_APP_PASSWORD}
       KILN_DATABASE_MIGRATOR_PASSWORD: ${KILN_MIGRATOR_PASSWORD}
+      KILN_DEX_CLIENT_SECRET: kiln-quick-start-secret
     volumes:
       - ./kiln.yaml:/etc/kiln/kiln.yaml:ro
       - blobs:/var/lib/kiln/blobs
@@ -42,7 +47,7 @@ services:
       # Health and metrics, for trying them out; never publish this port beyond the host.
       - "127.0.0.1:9090:9090"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:9090/readyz"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/actuator/health/readiness"]
       interval: 5s
       retries: 30
 

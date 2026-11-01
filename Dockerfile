@@ -9,6 +9,7 @@ COPY build/libs/kiln-oss-service.jar /opt/kiln/kiln-oss-service.jar
 USER 10001:10001
 WORKDIR /var/lib/kiln
 VOLUME /var/lib/kiln/blobs
-# 8080 serves clients; 9090 serves /healthz, /readyz and /metrics to the infrastructure only.
+# 8080 serves clients; 9090 serves health (/actuator/health) and metrics (/actuator/prometheus) to the
+# infrastructure only.
 EXPOSE 8080 9090
 ENTRYPOINT ["java", "-XX:+UseCompactObjectHeaders", "-XX:+UseZGC", "-jar", "/opt/kiln/kiln-oss-service.jar"]

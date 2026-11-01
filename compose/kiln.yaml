@@ -4,8 +4,40 @@ kiln:
   # Organizations to create on start; the web app creates more once sign-in exists.
   bootstrap:
     organizations: [homelab]
+    # The first instance admins. An email counts only through a connector whose allowed domains
+    # include its domain, below; for an IdP without verified emails, list issuer and subject pairs:
+    # admin-subjects:
+    #   - issuer: http://dex.localhost:5556/dex
+    #     subject: <the sub claim>
+    admin-emails: [demo@example.com]
   web:
     external-url: http://localhost:8080
+    # CORS: Kiln always allows its own headers (Authorization, Kiln-Organization, Kiln-Format,
+    # Content-Type) and methods (GET, POST, PUT, PATCH, DELETE, OPTIONS). The lists below are
+    # additive. Omit the cors block entirely for same-origin only.
+    # cors:
+    #   allowed-origins:
+    #     - http://localhost:3000
+    #   allowed-headers:
+    #     - X-Custom-Header
+    #   allowed-methods:
+    #     - HEAD
+  auth:
+    # Sign-ups are off: people get in through an invite link, or a verified email at an allowed
+    # domain, through that domain's connector. Here, Dex's demo users join homelab.
+    allowed-domains:
+      - connector: dex
+        domain: example.com
+        organization: homelab
+    oidc:
+      connectors:
+        - id: dex
+          display-name: Dex
+          preset: dex
+          issuer: http://dex.localhost:5556/dex
+          client-id: kiln
+          client-secret: env:KILN_DEX_CLIENT_SECRET
+          allow-insecure-issuer: true
   database:
     url: jdbc:postgresql://postgres:5432/kiln
     username: kiln_app

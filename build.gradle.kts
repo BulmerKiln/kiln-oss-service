@@ -2,7 +2,7 @@ plugins {
     id("kiln.service")
 }
 
-description = "Bulmer Kiln, the open-source edition: one organization, on Postgres and a filesystem or S3"
+description = "Bulmer Kiln, the open-source edition: any number of organizations, on Postgres and a filesystem or S3"
 
 dependencies {
     runtimeOnly("com.bulmerkiln:kiln-database")
@@ -10,6 +10,10 @@ dependencies {
     // The registry: the web layer, the shared tables and permissions, and every format, each of
     // which registers its routes only while it's enabled.
     runtimeOnly("com.bulmerkiln:kiln-web")
+    // Authentication: the connector contract, sessions, Spring Security wiring, and the OIDC/OAuth2 connectors.
+    runtimeOnly("com.bulmerkiln:kiln-auth")
+    runtimeOnly("com.bulmerkiln:kiln-auth-oidc")
+    runtimeOnly("com.bulmerkiln:kiln-auth-oauth2")
     runtimeOnly("com.bulmerkiln:kiln-registry")
     runtimeOnly("com.bulmerkiln:kiln-permissions")
     runtimeOnly("com.bulmerkiln:kiln-observability")

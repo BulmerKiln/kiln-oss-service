@@ -37,6 +37,14 @@ class DisabledFormatTest {
         KilnPostgres.properties(KilnPostgres.newDatabase()).forEach((key, value) -> registry.add(key, () -> value));
         Path blobs = Files.createTempDirectory("kiln-blobs");
         registry.add("kiln.storage.fs.root", blobs::toString);
+        // Kiln won't start without a sign-in connector (AUTH-13). Discovery waits for the first
+        // sign-in, so the issuer is never contacted.
+        Path secret = Files.createTempFile("kiln-oidc", ".secret");
+        Files.writeString(secret, "test-secret");
+        registry.add("kiln.auth.oidc.connectors[0].id", () -> "test");
+        registry.add("kiln.auth.oidc.connectors[0].issuer", () -> "https://idp.example");
+        registry.add("kiln.auth.oidc.connectors[0].client-id", () -> "kiln");
+        registry.add("kiln.auth.oidc.connectors[0].client-secret", () -> "file:" + secret);
     }
 
     /** Spring's own not-found page answers, since no route exists to give npm's. */

@@ -51,14 +51,22 @@ class KilnOssApplicationTest {
         KilnPostgres.properties(KilnPostgres.newDatabase()).forEach((key, value) -> registry.add(key, () -> value));
         Path blobs = Files.createTempDirectory("kiln-blobs");
         registry.add("kiln.storage.fs.root", blobs::toString);
+        // Kiln won't start without a sign-in connector (AUTH-13). Discovery waits for the first
+        // sign-in, so the issuer is never contacted.
+        Path secret = Files.createTempFile("kiln-oidc", ".secret");
+        Files.writeString(secret, "test-secret");
+        registry.add("kiln.auth.oidc.connectors[0].id", () -> "test");
+        registry.add("kiln.auth.oidc.connectors[0].issuer", () -> "https://idp.example");
+        registry.add("kiln.auth.oidc.connectors[0].client-id", () -> "kiln");
+        registry.add("kiln.auth.oidc.connectors[0].client-secret", () -> "file:" + secret);
     }
 
     /** OSS-1: the organizations boot config lists exist, and each keeps its ID. */
     @Test
     void createsTheBootstrapOrganizations() {
-        assertThat(directory.all()).extracting(Organization::slug).containsExactly("homelab", "side-project");
+        assertThat(directory.all()).extracting(Organization::getSlug).containsExactly("homelab", "side-project");
         Organization homelab = directory.bySlug("homelab").orElseThrow();
-        assertThat(directory.byId(homelab.id())).contains(homelab);
+        assertThat(directory.byId(homelab.getId())).contains(homelab);
         assertThat(directory.bySlug("acme")).isEmpty();
         assertThat(directory.byId(new OrganizationId(UUID.randomUUID()))).isEmpty();
     }
@@ -77,11 +85,22 @@ class KilnOssApplicationTest {
     void servesHealthAndMetricsOnTheManagementPort() {
         RestTestClient management = client(managementPort);
 
-        management.get().uri("/healthz").exchange().expectStatus().isOk();
-        management.get().uri("/readyz").exchange().expectStatus().isOk();
+        management.get().uri("/actuator/health").exchange().expectStatus().isOk();
         management
                 .get()
-                .uri("/metrics")
+                .uri("/actuator/health/liveness")
+                .exchange()
+                .expectStatus()
+                .isOk();
+        management
+                .get()
+                .uri("/actuator/health/readiness")
+                .exchange()
+                .expectStatus()
+                .isOk();
+        management
+                .get()
+                .uri("/actuator/prometheus")
                 .exchange()
                 .expectStatus()
                 .isOk()
@@ -94,7 +113,10 @@ class KilnOssApplicationTest {
     void keepsHealthAndMetricsOffThePublicPort() {
         RestTestClient clients = client(port);
 
-        for (String path : new String[] {"/healthz", "/readyz", "/metrics", "/actuator/health", "/actuator"}) {
+        for (String path : new String[] {
+            "/actuator", "/actuator/health", "/actuator/health/liveness", "/actuator/health/readiness",
+            "/actuator/prometheus", "/healthz", "/readyz", "/metrics"
+        }) {
             clients.get().uri(path).exchange().expectStatus().isNotFound();
         }
     }

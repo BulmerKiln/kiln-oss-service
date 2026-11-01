@@ -1,6 +1,8 @@
 # Dex for the quick-start: one demo user, demo@example.com with the password "password".
 # For trying sign-in only; never use it for a real installation.
-issuer: http://localhost:5556/dex
+# One name for both sides: browsers resolve *.localhost to this machine, and inside Compose it's
+# Dex's network alias, so Kiln's discovery sees the same issuer the browser is sent to.
+issuer: http://dex.localhost:5556/dex
 
 storage:
   type: memory

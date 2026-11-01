@@ -15,25 +15,21 @@ server:
   port: 8080
   shutdown: graceful
 
-# Health and metrics are for the infrastructure only, on their own port that no ingress exposes.
+# Health and metrics are for the infrastructure only, on their own port that no ingress exposes,
+# at Spring Boot Actuator's own paths: /actuator/health (with /liveness and /readiness) and
+# /actuator/prometheus.
 management:
   server:
     port: 9090
   endpoints:
     web:
-      base-path: /
       exposure:
         include: health, prometheus
-      path-mapping:
-        health: healthz
-        prometheus: metrics
   endpoint:
     health:
       probes:
+        # On outside Kubernetes too, so every deployment has the liveness and readiness groups.
         enabled: true
-      group:
-        readiness:
-          additional-path: "management:/readyz"
 
 kiln:
   web:
